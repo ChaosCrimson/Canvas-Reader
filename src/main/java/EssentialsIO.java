@@ -6,10 +6,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.*;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -79,7 +75,6 @@ public class EssentialsIO extends JFrame {
                 fileSelect.setCurrentDirectory(new File (s));
                 frame.pack();
                 frame.setLocationByPlatform(true);
-                File selectedFile = null;
                 frame.dispose();
 
 
@@ -156,46 +151,34 @@ public class EssentialsIO extends JFrame {
                 frame2.add(rButton2, "cell 4 3, span 2, width 100:100:150, height 22, growx 100, shrink 0");
                 frame2.add(okButton, "dock south,align right, gap 20, pad -19 -19 -20 -20, width 75:75:75, height 28, growx 100, shrink 0");
 
-                txtfld1.addPropertyChangeListener(new PropertyChangeListener() {
-                    @Override
-                    public void propertyChange(PropertyChangeEvent evt) {
-                        instructureDomain = txtfld1.getText();
-                        if(!txtfld1.getText().equals("")) {
-                            hasTxt1 = true;
-                        }
+                txtfld1.addPropertyChangeListener(evt -> {
+                    instructureDomain = txtfld1.getText();
+                    if(!txtfld1.getText().equals("")) {
+                        hasTxt1 = true;
                     }
                 });
-                txtfld2.addPropertyChangeListener(new PropertyChangeListener() {
-                    @Override
-                    public void propertyChange(PropertyChangeEvent evt) {
-                        token = txtfld2.getText();
-                        if(!txtfld2.getText().equals("")) {
-                            hasTxt2 = true;
-                        }
+                txtfld2.addPropertyChangeListener(evt -> {
+                    token = txtfld2.getText();
+                    if(!txtfld2.getText().equals("")) {
+                        hasTxt2 = true;
                     }
                 });
-                txtfld3.addPropertyChangeListener(new PropertyChangeListener() {
-                    @Override
-                    public void propertyChange(PropertyChangeEvent evt) {
-                        email = txtfld3.getText();
-                        if(!txtfld3.getText().equals("")) {
-                            hasTxt3 = true;
-                        }
+                txtfld3.addPropertyChangeListener(evt -> {
+                    email = txtfld3.getText();
+                    if(!txtfld3.getText().equals("")) {
+                        hasTxt3 = true;
                     }
                 });
-                File finalSelectedFile = selectedFile;
-                okButton.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent ex) {
-                        if(hasTxt1 && hasTxt2 && hasTxt3 && getSelectedButtonText(group) != null) {
-                            try {
-                                frequency = getSelectedButtonText(group);
-                                frame2.dispose();
-                                dataGather(finalSelectedFile);
-                                dataWrite(fileSelect, frame);
-                            } catch (IOException | ParseException | java.text.ParseException e) {
-                                throw new RuntimeException(e);
-                            }
+
+                okButton.addActionListener(ex -> {
+                    if(hasTxt1 && hasTxt2 && hasTxt3 && getSelectedButtonText(group) != null) {
+                        try {
+                            frequency = getSelectedButtonText(group);
+                            frame2.dispose();
+                            dataGather();
+                            dataWrite(fileSelect, frame);
+                        } catch (IOException | ParseException | java.text.ParseException e) {
+                            throw new RuntimeException(e);
                         }
                     }
                 });
@@ -207,7 +190,8 @@ public class EssentialsIO extends JFrame {
         });
     }
 
-    public static void dataGather(File finalSelectedFile) throws IOException, ParseException, java.text.ParseException {
+    public static void dataGather() throws IOException, ParseException, java.text.ParseException {
+        JSONParser parser = new JSONParser();
         long user_id = 0;
         final String ANSI_RESET = "\u001B[0m";
         final String ANSI_RED = "\u001B[31m";
@@ -222,13 +206,10 @@ public class EssentialsIO extends JFrame {
         newStudentData.put("instructureDomain", instructureDomain);
         newStudentData.put("email", email);
         newStudentData.put("frequency", frequency);
-
-        JSONParser parser = new JSONParser();
-        System.out.println("Success!");
+        
         System.out.println("Retrieving Course Data From the Web...");
         newStudentData.put("enrollments", newCourseData);
-
-        System.out.println("https://" + instructureDomain + "/api/v1/courses?per_page=999999&access_token=" + token);
+        
         JSONArray json = readJSONArrayFromUrl("https://" + instructureDomain + "/api/v1/courses?per_page=999999&access_token=" + token);
         String courseData = json.toString();
         boolean found_User_Id = false;
